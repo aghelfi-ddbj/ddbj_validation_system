@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: ubuntu:22.04
+IncludeCmd: yes
+
+%environment
+  export R_VERSION=4.2.1
+  export R_CONFIG_DIR=/etc/R/
+  export DEBIAN_FRONTEND=noninteractive
+
+%labels
+  Author Andrea Ghelfi
+  Version v1.2; ddbj_mss_validation_v2.3
+  R_Version 4.2.1
+  build_date 2023/06/21
+
+%files
+  scripts/* /mnt
+
+%post
+  apt-get -qq -y update
+  apt-get -qq install -y --no-install-recommends tzdata
+  apt-get install -y r-base locales
+  locale-gen "en_US.UTF-8"
+  ln -s /bin/bash /bin/sh -f
+  # installing R packages
+  echo install.packages\(\"stringr\"\, repos\=\'https://cloud.r-project.org\'\) | R --slave
+  echo install.packages\(\"data.table\"\, repos\=\'https://cloud.r-project.org\'\) | R --slave
+  echo install.packages\(\"fedmatch\"\, repos\=\'https://cloud.r-project.org\'\) | R --slave
+
+  mkdir -p /data
+
+%runscript
+  exec sh /mnt/ddbj_autofix_sing.sh
